@@ -13,7 +13,7 @@ class User(db.Model):
 
     def to_dict(self):
         return {
-            'id': self.id,
+            'id': str(self.id),
             'username': self.username,
             'email': self.email,
             'password': self.password,

@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, jsonify
+    Blueprint, jsonify, request, abort
 )
 from sqlalchemy import select
 from flaskr.database import db
@@ -12,3 +12,46 @@ def index():
     users = db.session.scalars(select(User).order_by(User.id)).all()
     # return [user.to_dict() for user in users]
     return jsonify(users)
+
+@bp.route('/<int:id>', methods=('GET', 'POST'))
+def get_user(id):
+    user = db.get_or_404(User, id)
+    return user.to_dict()
+
+@bp.route('/<int:id>/update', methods=('POST', 'PATCH'))
+def update(id):
+    if request.is_json:
+        data = request.get_json()
+        username = data['username'] if 'username' in data else None
+        password = data['password'] if 'password' in data else None
+        email = data['email'] if 'email' in data else None
+    else:
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+    
+    user = db.get_or_404(User, id)
+    try:
+        if username:
+            user.username = username
+        if password:
+            user.password = password
+        if email:
+            user.email = email
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        abort(500, description='DB update error')
+    return jsonify(user.to_dict())
+
+@bp.route('/<int:id>/delete', methods=('DELETE',))
+def remove(id):
+    user = db.get_or_404(User, id)
+    user_json = jsonify(user.to_dict())
+    try:
+        db.session.delete(user)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        abort(500, description='DB delete error')
+    return user_json
