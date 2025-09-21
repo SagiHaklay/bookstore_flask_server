@@ -36,3 +36,46 @@ class CartItem(db.Model):
     userId: Mapped[int] = mapped_column(Integer, nullable=False)
     productId: Mapped[int] = mapped_column(Integer, nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+
+@dataclass
+class UserResponse:
+    id: str
+    username: str
+    password: str
+    email: str
+    isAdmin: bool
+
+    def __init__(self, id, username, password, email, isAdmin):
+        self.id = str(id)
+        self.username = username
+        self.password = password
+        self.email = email
+        self.isAdmin = isAdmin
+
+@dataclass
+class BookResponse:
+    id: str
+    name: str
+    author: str
+    publisher: str
+    price: float
+    discount: int
+    imageUrl: str
+
+    def __init__(self, book: Book):
+        self.id = str(book.id)
+        self.name = book.name
+        self.author = book.author
+        self.publisher = book.publisher
+        self.price = book.price
+        self.discount = book.discount
+        self.imageUrl = book.imageUrl
+
+@dataclass
+class CartItemResponse:
+    product: BookResponse
+    quantity: int
+
+    def __init__(self, product, quantity):
+        self.product = product
+        self.quantity = quantity

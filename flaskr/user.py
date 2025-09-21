@@ -3,7 +3,7 @@ from flask import (
 )
 from sqlalchemy import select
 from flaskr.database import db
-from flaskr.models import User
+from flaskr.models import User, UserResponse
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -16,9 +16,10 @@ def index():
 @bp.route('/<int:id>', methods=('GET', 'POST'))
 def get_user(id):
     user = db.get_or_404(User, id)
-    return user.to_dict()
+    res = UserResponse(user.id, user.username, user.password, user.email, user.isAdmin)
+    return jsonify(res)
 
-@bp.route('/<int:id>/update', methods=('POST', 'PATCH'))
+@bp.route('/<int:id>/update', methods=('PUT', 'PATCH'))
 def update(id):
     if request.is_json:
         data = request.get_json()
@@ -42,12 +43,14 @@ def update(id):
     except Exception as e:
         print(e)
         abort(500, description='DB update error')
-    return jsonify(user.to_dict())
+    res = UserResponse(user.id, user.username, user.password, user.email, user.isAdmin)
+    return jsonify(res)
 
 @bp.route('/<int:id>/delete', methods=('DELETE',))
 def remove(id):
     user = db.get_or_404(User, id)
-    user_json = jsonify(user.to_dict())
+    res = UserResponse(user.id, user.username, user.password, user.email, user.isAdmin)
+    user_json = jsonify(res)
     try:
         db.session.delete(user)
         db.session.commit()

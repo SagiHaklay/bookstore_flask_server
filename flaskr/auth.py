@@ -3,7 +3,7 @@ from flask import (
 )
 from sqlalchemy import select
 from flaskr.database import db
-from flaskr.models import User
+from flaskr.models import User, UserResponse
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -30,7 +30,8 @@ def register():
         db.session.commit()
     except Exception:
         abort(500, description='DB insertion error')
-    return jsonify(user)
+    res = UserResponse(user.id, user.username, user.password, user.email, user.isAdmin)
+    return jsonify(res)
 
 @bp.route('/login', methods=('POST',))
 def login():
