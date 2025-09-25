@@ -55,7 +55,8 @@ def remove_product(userId, productId):
     # if not productId:
     #     return {'message': 'Product ID required'}, 400
     cartItem = db.session.scalar(select(CartItem).where(CartItem.userId == userId).where(CartItem.productId == productId))
-    res = CartItemResponse(cartItem)
+    product = db.get_or_404(Book, cartItem.productId)
+    res = CartItemResponse(product, cartItem.quantity)
     try:
         db.session.delete(cartItem)
         db.session.commit()
