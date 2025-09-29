@@ -4,9 +4,13 @@ from flask import Flask
 from flask_cors import CORS
 from flaskr.database import db
 
+UPLOAD_FOLDER = '/static'
+
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+mysqldb://root:Adht7244!@localhost:3306/bookstore"
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
     CORS(app)
     db.init_app(app)
     import flaskr.models
