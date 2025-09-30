@@ -1,20 +1,26 @@
 from flask import (
     Blueprint, jsonify, request, abort
 )
+from flask_jwt_extended import jwt_required
 from sqlalchemy import select
 from flaskr.database import db
 from flaskr.models import CartItem, CartItemResponse, Book
+from flaskr.validation import verify_user_id
 
 bp = Blueprint('cart', __name__, url_prefix='/cart')
 
 @bp.route('/<int:userId>')
+@jwt_required()
 def get_cart(userId):
+    verify_user_id(userId)
     cart = db.session.execute(select(CartItem, Book).join(Book, CartItem.productId == Book.id).where(CartItem.userId == userId))
     res = [CartItemResponse(row.Book, row.CartItem.quantity) for row in cart]
     return jsonify(res)
 
 @bp.route('/<int:userId>/add', methods=('POST',))
+@jwt_required()
 def add_product(userId):
+    verify_user_id(userId)
     data = request.get_json()
     productId = int(data['productId']) if 'productId' in data else None
     quantity = data['quantity'] if 'quantity' in data else None
@@ -33,7 +39,9 @@ def add_product(userId):
     return jsonify(res)
 
 @bp.route('/<int:userId>/addMany', methods=('POST',))
+@jwt_required()
 def add_products(userId):
+    verify_user_id(userId)
     data = request.get_json()
     cartData = data['cartItems'] if 'cartItems' in data else []
     if len(cartData) == 0:
@@ -49,11 +57,9 @@ def add_products(userId):
     return get_cart(userId)
     
 @bp.route('/<int:userId>/delete/<int:productId>', methods=('DELETE',))
+@jwt_required()
 def remove_product(userId, productId):
-    # data = request.get_json()
-    # productId = int(data['productId']) if 'productId' in data else None
-    # if not productId:
-    #     return {'message': 'Product ID required'}, 400
+    verify_user_id(userId)
     cartItem = db.session.scalar(select(CartItem).where(CartItem.userId == userId).where(CartItem.productId == productId))
     product = db.get_or_404(Book, cartItem.productId)
     res = CartItemResponse(product, cartItem.quantity)
@@ -66,7 +72,9 @@ def remove_product(userId, productId):
     return jsonify(res)
 
 @bp.route('/<int:userId>/order', methods=('POST',))
+@jwt_required()
 def place_order(userId):
+    verify_user_id(userId)
     cartItems = db.session.scalars(select(CartItem).where(CartItem.userId == userId)).all()
     try:
         for item in cartItems:

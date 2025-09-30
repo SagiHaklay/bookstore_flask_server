@@ -1,11 +1,13 @@
 from flask import (
-    Blueprint, jsonify, request, abort
+    Blueprint, jsonify, request, abort, current_app
 )
 import os
 from werkzeug.utils import secure_filename
 from sqlalchemy import select
+from flask_jwt_extended import get_jwt, verify_jwt_in_request
 from flaskr.database import db
 from flaskr.models import Book, BookResponse
+from flaskr.validation import admin_required
 
 bp = Blueprint('product', __name__, url_prefix='/product')
 
@@ -40,7 +42,7 @@ def handle_file(id):
     # filename = secure_filename(file.filename)
     filename = f'book{id}.{file.filename.rsplit('.', 1)[1]}'
     # file_path = os.path.join(UPLOAD_FOLDER, filename)
-    file_path = f'{UPLOAD_FOLDER}/{filename}'
+    file_path = f'{current_app.config['UPLOAD_FOLDER']}/{filename}'
     # dir_fd = os.open(UPLOAD_FOLDER, os.O_RDONLY)
     # def opener(path, flags):
     #     return os.open(path, flags, dir_fd=dir_fd)
@@ -55,6 +57,7 @@ def handle_file(id):
         'path': file_path
     }
 
+
 @bp.route('/')
 def index():
     books = db.session.scalars(select(Book).order_by(Book.id)).all()
@@ -68,6 +71,7 @@ def get_product(id):
     return jsonify(res)
 
 @bp.route('/create', methods=('POST',))
+@admin_required()
 def create_product():
     if request.is_json:
         data = request.get_json()
@@ -109,6 +113,7 @@ def create_product():
     return jsonify(res)
 
 @bp.route('/<int:id>/update', methods=('PUT', 'PATCH'))
+@admin_required()
 def update_product(id):
     if request.is_json:
         data = request.get_json()
@@ -152,6 +157,7 @@ def update_product(id):
     return jsonify(res)
 
 @bp.route('/<int:id>/delete', methods=('DELETE',))
+@admin_required()
 def remove_product(id):
     book = db.get_or_404(Book, id)
     res = BookResponse(book)

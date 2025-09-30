@@ -8,7 +8,7 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(20))
-    password: Mapped[str] = mapped_column(String(20), nullable=False)
+    password: Mapped[str] = mapped_column(String(162), nullable=False)
     isAdmin: Mapped[bool] = mapped_column(Boolean)
 
     def to_dict(self):
