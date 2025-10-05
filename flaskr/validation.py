@@ -35,4 +35,4 @@ def admin_required():
 def verify_user_id(user_id):
     curr_user = get_jwt_identity()
     if curr_user != str(user_id):
-        abort(401, message='Invalid token for user')
+        abort(403, msg='Invalid token for user')

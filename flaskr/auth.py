@@ -27,7 +27,6 @@ def register():
     if not email:
         abort(400, description='email required')
     password = generate_password_hash(password)
-    print(len(password))
     user = User(username=username, password=password, email=email, isAdmin=False)
     try:
         db.session.add(user)
@@ -57,9 +56,11 @@ def login():
         abort(400, description='password required')
     user = db.session.scalar(select(User).where(User.username == username))
     if not user:
-        abort(401, description='Username does not exist')
+        # abort(401, description='Username does not exist')
+        return {'message': 'Username does not exist'}, 401
     if user.password != password and not check_password_hash(user.password, password):
-        abort(401, description='Username and/or password are incorrect')
+        # abort(401, description='Username and/or password are incorrect')
+        return {'message': 'Username and/or password are incorrect'}, 401
     token = create_access_token(identity=str(user.id), additional_claims={'is_admin': user.isAdmin})
     return {
         'userId': user.id,
